@@ -15,10 +15,33 @@ But at \[A]least I'm not alone
 \endverse
 """
 
-# chord_pattern = r'\[ch\]([A-h#785maj]*)\[/ch\]'
 chord_pattern = r'\[ch\](.*?)\[/ch\]'
 tabline_pattern = r'\[tab\](.*?)\[/tab\]'
 return_pattern = r'\\r\\n'
+
+
+def format_tab_data_to_latex(tab_link):
+
+	tab_data = get_and_cut_html(tab_link)
+
+	# format tablines
+	while(re.search(tabline_pattern, tab_data)):
+		new_tabline = join_chords_and_text(re.search(tabline_pattern, tab_data).group(1))
+		tabline_re = re.sub(tabline_pattern, new_tabline, tab_data, count=1)
+		tab_data = str(tabline_re)
+
+	# format no lyrics lines
+	tab_data = re.sub(chord_pattern, r'\\[\1]', tab_data)
+
+	# format line returns
+	return_re = re.split(return_pattern, tab_data)
+
+	with open("beautifulsoup.html", "w") as file:
+		file.write("\\beginsong{todo}[by={todo},\ncr={" + tab_link + "}]\n\n")
+		for line in return_re:
+			file.write(str(line) + "\n")
+		file.write("\n\\endsong")
+
 
 def get_and_cut_html(tab_link):
 	req = Request(tab_link)	
@@ -35,28 +58,9 @@ def get_and_cut_html(tab_link):
 
 	return tab_str
 
-	# with open("beautifulsoup.html", "w") as file:
-	#    file.write(tab_str)
-
-def format_tab_data_to_latex(tab_data):
-
-	# format tablines
-	while(re.search(tabline_pattern, tab_data)):
-		new_tabline = join_chords_and_text(re.search(tabline_pattern, tab_data).group(1))
-		tabline_re = re.sub(tabline_pattern, new_tabline, tab_data, count=1)
-		tab_data = str(tabline_re)
-
-	# format line returns
-	return_pattern = r'\\r\\n'
-	return_re = re.split(return_pattern, tab_data)
-
-	with open("beautifulsoup.html", "w") as file:
-	 	for line in return_re:
-	 		file.write(str(line) + "\n")
 
 def join_chords_and_text(tabline):
 
-	
 	return_re = re.split(return_pattern, tabline)
 
 	if not len(return_re) == 2:
@@ -78,8 +82,7 @@ if __name__ == '__main__':
 	
 	#tab_link = input("Enter the ultimate guitar web link für your tabs: ")
 
-	tab_link = "https://tabs.ultimate-guitar.com/tab/boywithuke/two-moons-chords-3757571"
-	# tab_link = "https://tabs.ultimate-guitar.com/tab/ed-sheeran/perfect-chords-1956589"
+	#tab_link = "https://tabs.ultimate-guitar.com/tab/boywithuke/two-moons-chords-3757571"
+	tab_link = "https://tabs.ultimate-guitar.com/tab/ed-sheeran/perfect-chords-1956589"
 
-	tab_data = get_and_cut_html(tab_link)
-	format_tab_data_to_latex(tab_data)
+	format_tab_data_to_latex(tab_link)
