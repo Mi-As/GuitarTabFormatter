@@ -1,88 +1,109 @@
 #/usr/bin/python3
 from bs4 import BeautifulSoup
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+
+import sys
 import re
 
-"""
-\beginsong{A World Of Chaos}[by={poems of the past}, cr={https://tabs.ultimate-guitar.com/tab/powfu/a-world-of-chaos-chords-3180749}]
-
-\beginverse
-[Intro: Ivri]
-Spilled a \[D]glass of wine and stained the kitchen floor
-We never \[F#m]used to fight but now it feels like war
-\[Bm]Sadness in our home
-But at \[A]least I'm not alone
-\endverse
-"""
-
-chord_pattern = r'\[ch\](.*?)\[/ch\]'
-tabline_pattern = r'\[tab\](.*?)\[/tab\]'
-return_pattern = r'\\r\\n'
+# BUG: if space, chord sometimes does not fit corrctly
 
 
-def format_tab_data_to_latex(tab_link):
-
-	tab_data = get_and_cut_html(tab_link)
-
-	# format tablines
-	while(re.search(tabline_pattern, tab_data)):
-		new_tabline = join_chords_and_text(re.search(tabline_pattern, tab_data).group(1))
-		tabline_re = re.sub(tabline_pattern, new_tabline, tab_data, count=1)
-		tab_data = str(tabline_re)
-
-	# format no lyrics lines
-	tab_data = re.sub(chord_pattern, r'\\[\1]', tab_data)
-
-	# format line returns
-	return_re = re.split(return_pattern, tab_data)
-
-	with open("beautifulsoup.html", "w") as file:
-		file.write("\\beginsong{todo}[by={todo},\ncr={" + tab_link + "}]\n\n")
-		for line in return_re:
-			file.write(str(line) + "\n")
-		file.write("\n\\endsong")
+class TabFormatter:
 
 
-def get_and_cut_html(tab_link):
-	req = Request(tab_link)	
-	html_page = urlopen(req)
+	def __init__(self, tab_link):
+		self.tab_link = tab_link
+		self.outfile = "beautifulsoup.html"
 
-	# get html
-	soup = BeautifulSoup(html_page, "html.parser")
-	tab_soup = soup.find("div", class_="js-store")
-
-	# extract tabs
-	pattern = r'content&quot;:&quot;(.*)&quot;,&quot;revision_id&quot;'
-	tab_re= re.search(pattern, str(tab_soup))
-	tab_str = str(tab_re.group(1))
-
-	return tab_str
+		self._chord_pattern = r'\[ch\](.*?)\[/ch\]'
+		self._tabline_pattern = r'\[tab\](.*?)\[/tab\]'
+		self._return_pattern = r'\\r\\n'
 
 
-def join_chords_and_text(tabline):
+	def write_latex_tab(self):
 
-	return_re = re.split(return_pattern, tabline)
+		tab_data = self.get_html_cut()
 
-	if not len(return_re) == 2:
-		return "Error"
+		# format tablines
+		while(re.search(self._tabline_pattern, tab_data)):
 
-	new_tabline = return_re[1] + 10*" "
-	tmp = 0
-	for match in re.finditer(chord_pattern, return_re[0]):
+			tab_line = re.search(self._tabline_pattern, tab_data).group(1)
+			new_tabline = self._join_chords_and_text(tab_line)
+			new_tabline_re = re.sub(self._tabline_pattern, new_tabline, tab_data, count=1)
 
-		position = match.span()[0] + tmp
-		new_tabline = f'{new_tabline[:position]}\\[{match.group(1)}]{new_tabline[position:]}'
+			tab_data = str(new_tabline_re)
 
-		tmp += len(match.group(1))+3
+		# format no lyrics lines
+		tab_data = re.sub(self._chord_pattern, r'\\[\1]', tab_data)
 
-	return new_tabline.strip()
+		# format line returns
+		return_re = re.split(self._return_pattern, tab_data)
+
+		with open(self.outfile, "w") as file:
+
+			file.write("\\beginsong{todo}[by={todo},\ncr={" + self.tab_link + "}]\n\n\\beginverse\n")
+
+			for line in return_re:
+				if not line:
+					file.write("\\endverse\n\n\\beginverse\n")
+
+				file.write(str(line) + "\n")
+
+			file.write("\\endverse\n\\endsong")
+
+
+	def get_html_cut(self):
+		req = Request(self.tab_link)
+		try:
+			html_page = urlopen(req)
+		except HTTPError as r:
+			print(f"ERROR: HTTPError for url {self.tab_link}")
+			sys.exit()
+
+		# get html
+		soup = BeautifulSoup(html_page, "html.parser")
+		tab_soup = soup.find("div", class_="js-store")
+
+		# extract tabs
+		pattern = r'content&quot;:&quot;(.*)&quot;,&quot;revision_id&quot;'
+		tab_re= re.search(pattern, str(tab_soup))
+
+		if tab_re is None:
+			print(f"ERROR: Cannot extract tabs, only ultimate-guitar tabs supported")
+			sys.exit()
+
+		tab_str = str(tab_re.group(1))
+
+		return tab_str
+
+
+	def _join_chords_and_text(self, tabline):
+
+		return_re = re.split(self._return_pattern, tabline)
+
+		if not len(return_re) == 2:
+			return "Error"
+
+		print(return_re[0])
+		print(return_re[1])
+
+		new_tabline = return_re[1] + 10*" "
+		tmp = 0
+		for match in re.finditer(self._chord_pattern, return_re[0]):
+
+			position = match.span()[0] + tmp
+			new_tabline = f'{new_tabline[:position]}\\[{match.group(1)}]{new_tabline[position:]}'
+
+			len_chord_bef = match.span()[1]-match.span()[0]
+			len_chord_aft = len(match.group(1))+4
+			tmp = tmp - len_chord_bef + len_chord_aft
+
+		return new_tabline.strip()
+
 
 
 if __name__ == '__main__':
 	
-	#tab_link = input("Enter the ultimate guitar web link für your tabs: ")
-
-	#tab_link = "https://tabs.ultimate-guitar.com/tab/boywithuke/two-moons-chords-3757571"
-	tab_link = "https://tabs.ultimate-guitar.com/tab/ed-sheeran/perfect-chords-1956589"
-
-	format_tab_data_to_latex(tab_link)
+	tab_link = input("Enter the ultimate guitar web link for your tabs:\n")
+	TabFormatter(tab_link).write_latex_tab()
