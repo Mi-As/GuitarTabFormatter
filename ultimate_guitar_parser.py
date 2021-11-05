@@ -14,7 +14,7 @@ class TabFormatter:
 
 	def __init__(self, tab_link):
 		self.tab_link = tab_link
-		self.outfile = "beautifulsoup.html"
+		self.outfile = "TabFormatter.txt"
 
 		self._chord_pattern = r'\[ch\](.*?)\[/ch\]'
 		self._tabline_pattern = r'\[tab\](.*?)\[/tab\]'
@@ -40,17 +40,35 @@ class TabFormatter:
 		# format line returns
 		return_re = re.split(self._return_pattern, tab_data)
 
+		# wirte to file
 		with open(self.outfile, "w") as file:
 
-			file.write("\\beginsong{todo}[by={todo},\ncr={" + self.tab_link + "}]\n\n\\beginverse\n")
+			file.write("\\beginsong{todo}[by={todo},\ncr={" + self.tab_link + "}]\n\n\\beginverse")
 
+			last_was_retrun = False
 			for line in return_re:
-				if not line:
-					file.write("\\endverse\n\n\\beginverse\n")
-
+				if not line and not last_was_retrun:
+					file.write("\\endverse\n\n\\beginverse")
+					last_was_retrun = True
+				else:
+					last_was_retrun = False
 				file.write(str(line) + "\n")
 
-			file.write("\\endverse\n\\endsong")
+			file.write("\\endverse\n\n\\endsong")
+
+	def write_text_tab(self):
+
+		tab_data = self.get_html_cut()
+
+		tab_data = re.sub(self._chord_pattern, r'\1', tab_data) # format chords
+		tab_data = re.sub(self._tabline_pattern, r'\1', tab_data) # format lines		
+		return_re = re.split(self._return_pattern, tab_data) # format line returns
+
+		# write to file
+		with open(self.outfile, "w") as file:
+
+			for line in return_re:
+				file.write(str(line) + "\n")
 
 
 	def get_html_cut(self):
@@ -85,9 +103,6 @@ class TabFormatter:
 		if not len(return_re) == 2:
 			return "Error"
 
-		print(return_re[0])
-		print(return_re[1])
-
 		new_tabline = return_re[1] + 10*" "
 		tmp = 0
 		for match in re.finditer(self._chord_pattern, return_re[0]):
@@ -106,4 +121,4 @@ class TabFormatter:
 if __name__ == '__main__':
 	
 	tab_link = input("Enter the ultimate guitar web link for your tabs:\n")
-	TabFormatter(tab_link).write_latex_tab()
+	TabFormatter(tab_link).write_text_tab()
