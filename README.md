@@ -6,13 +6,13 @@ Use this script to download chords from **ultimate-guitar.com** as text or conve
 
 Download and run the script with pyhton. (You may have to install some additional packages e.g. `bs4` and `urllib`)
 
-```bash
+```
 python3 ultimate_guitar_parser.py
 ```
 
 Follow the instruction and submit the song url (Only **ultimate-guitar** tabs type **chords** are supported).
 
-```bash
+```
 Enter the ultimate guitar web link for your tabs:
 https://tabs.ultimate-guitar.com/tab/boywithuke/two-moons-chords-3757571
 ```
