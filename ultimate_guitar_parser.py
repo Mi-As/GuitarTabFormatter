@@ -6,9 +6,6 @@ from urllib.request import Request, urlopen
 import sys
 import re
 
-# BUG: if space, chord sometimes does not fit corrctly
-
-
 class TabFormatter:
 
 
@@ -110,9 +107,11 @@ class TabFormatter:
 			position = match.span()[0] + tmp
 			new_tabline = f'{new_tabline[:position]}\\[{match.group(1)}]{new_tabline[position:]}'
 
-			len_chord_bef = match.span()[1]-match.span()[0]
-			len_chord_aft = len(match.group(1))+4
-			tmp = tmp - len_chord_bef + len_chord_aft
+			len_chord = len(match.group(1))
+			# len_chord_bef = match.span()[1]-match.span()[0] - len_chord
+			# len_chord_aft = len_chord + 3
+			# tmp = tmp - len_chord_bef + len_chord_aft
+			tmp = tmp + (match.span()[0]-match.span()[1]) + 2*len_chord + 3
 
 		return new_tabline.strip()
 
@@ -121,4 +120,4 @@ class TabFormatter:
 if __name__ == '__main__':
 	
 	tab_link = input("Enter the ultimate guitar web link for your tabs:\n")
-	TabFormatter(tab_link).write_text_tab()
+	TabFormatter(tab_link).write_latex_tab()
