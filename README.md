@@ -31,7 +31,7 @@ You knew, yeah you kept it to yourself, to your self
 
 ### Usage with Playlist
 
-Run the following script and paste you ultimate guitar playlist url
+Run the following script and paste you ultimate guitar playlist url.
 ```
 python3 ultimate_guitar_playlist_parser.py
 ```

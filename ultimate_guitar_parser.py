@@ -124,4 +124,4 @@ class TabFormatter:
 if __name__ == '__main__':
 	
 	tab_url = input("Enter the ultimate guitar web link for your tabs:\n")
-	TabFormatter(tab_url).write_latex_tab()
+	TabFormatter(tab_url).write_text_tab()

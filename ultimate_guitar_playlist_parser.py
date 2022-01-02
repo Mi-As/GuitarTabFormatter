@@ -57,5 +57,6 @@ class PlaylistTabFormatter:
 			TabFormatter(url, f'{self.outfile}{count}').write_text_tab()
 
 if __name__ == '__main__':
+	
 	playlist_url = input("Enter the ultimate guitar playlist web link for your tabs:\n")
-	PlaylistTabFormatter(playlist_url).write_latex_tabs()
+	PlaylistTabFormatter(playlist_url).write_text_tab()
