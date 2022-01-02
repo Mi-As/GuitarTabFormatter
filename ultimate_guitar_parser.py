@@ -9,9 +9,9 @@ import re
 class TabFormatter:
 
 
-	def __init__(self, tab_link):
-		self.tab_link = tab_link
-		self.outfile = "TabFormatter.txt"
+	def __init__(self, tab_url, outfile="formatted_tab"):
+		self.tab_url = tab_url
+		self.outfile = f'{outfile}.txt'
 
 		self._chord_pattern = r'\[ch\](.*?)\[/ch\]'
 		self._tabline_pattern = r'\[tab\](.*?)\[/tab\]'
@@ -20,7 +20,7 @@ class TabFormatter:
 
 	def write_latex_tab(self):
 
-		tab_data = self.get_html_cut()
+		tab_data = self._get_html_cut()
 
 		# format tablines
 		while(re.search(self._tabline_pattern, tab_data)):
@@ -40,7 +40,7 @@ class TabFormatter:
 		# wirte to file
 		with open(self.outfile, "w") as file:
 
-			file.write("\\beginsong{todo}[by={todo},\ncr={" + self.tab_link + "}]\n\n\\beginverse")
+			file.write("\\beginsong{todo}[by={todo},\ncr={" + self.tab_url + "}]\n\n\\beginverse")
 
 			last_was_retrun = False
 			for line in return_re:
@@ -55,7 +55,7 @@ class TabFormatter:
 
 	def write_text_tab(self):
 
-		tab_data = self.get_html_cut()
+		tab_data = self._get_html_cut()
 
 		tab_data = re.sub(self._chord_pattern, r'\1', tab_data) # format chords
 		tab_data = re.sub(self._tabline_pattern, r'\1', tab_data) # format lines		
@@ -68,12 +68,16 @@ class TabFormatter:
 				file.write(str(line) + "\n")
 
 
-	def get_html_cut(self):
-		req = Request(self.tab_link)
+	def _get_html_cut(self):
+		
 		try:
+			req = Request(self.tab_url)
 			html_page = urlopen(req)
 		except HTTPError as r:
-			print(f"ERROR: HTTPError for url {self.tab_link}")
+			print(f"ERROR: HTTPError for url {self.tab_url}")
+			sys.exit()
+		except ValueError as v:
+			print(f"\nERROR: Enter a valid url")
 			sys.exit()
 
 		# get html
@@ -119,5 +123,5 @@ class TabFormatter:
 
 if __name__ == '__main__':
 	
-	tab_link = input("Enter the ultimate guitar web link for your tabs:\n")
-	TabFormatter(tab_link).write_latex_tab()
+	tab_url = input("Enter the ultimate guitar web link for your tabs:\n")
+	TabFormatter(tab_url).write_latex_tab()

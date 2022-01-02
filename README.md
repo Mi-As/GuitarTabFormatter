@@ -17,7 +17,7 @@ Enter the ultimate guitar web link for your tabs:
 https://tabs.ultimate-guitar.com/tab/boywithuke/two-moons-chords-3757571
 ```
 
-The file called `TabFormatter.txt` will contain the output.
+The file called `formatted_tab.txt` will contain the output.
 
 ```
 [Verse 1]
@@ -27,6 +27,13 @@ F#m                 A                              E
                     Bm
 You knew, yeah you kept it to yourself, to your self
 ...
+```
+
+### Usage with Playlist
+
+Run the following script and paste you ultimate guitar playlist url
+```
+python3 ultimate_guitar_playlist_parser.py
 ```
 
 ### Latex Support
